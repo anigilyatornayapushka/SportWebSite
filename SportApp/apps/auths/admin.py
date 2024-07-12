@@ -7,15 +7,20 @@ from .models import User
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     list_display = ('email', 'first_name', 'last_name', 'gender',
-                    'is_active', 'is_staff', 'is_superuser')
-    list_filter = ('is_active', 'is_staff', 'is_superuser', 'gender')
+                    'is_active', 'is_staff', 'is_superuser',
+                    'datetime_created', 'datetime_updated', 'datetime_deleted')
+    list_filter = ('is_active', 'is_staff', 'is_superuser',
+                   'gender', 'datetime_created')
     search_fields = ('email', 'first_name', 'last_name')
-    ordering = ('email',)
+    ordering = ('email', 'datetime_created',
+                'datetime_updated', 'datetime_deleted')
 
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Личные данные', {'fields': ('first_name', 'last_name', 'gender')}),
         ('Разрешения', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
+        ('Время изменения', {'fields': ('datetime_created',
+                                        'datetime_updated', 'datetime_deleted')})
     )
 
     add_fieldsets = (

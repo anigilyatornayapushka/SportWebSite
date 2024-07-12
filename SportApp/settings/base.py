@@ -30,6 +30,7 @@ DJANGO_APPS = (
 
 CUSTOM_APPS = (
     'auths',
+    'abstracts',
 )
 
 INSTALLED_APPS = DJANGO_APPS + CUSTOM_APPS

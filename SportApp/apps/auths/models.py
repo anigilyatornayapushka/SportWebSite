@@ -4,8 +4,13 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.core.validators import MinLengthValidator
 
+from abstracts.models import (
+    AbstractModel,
+    AbstractManager,
+)
 
-class UserManager(BaseUserManager):
+
+class UserManager(BaseUserManager, AbstractManager):
     """
     Manager for user custom methods.
     """
@@ -37,7 +42,7 @@ class UserManager(BaseUserManager):
         return u
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser, PermissionsMixin, AbstractModel):
     """
     Custom model of User.
     """
