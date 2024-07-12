@@ -1,9 +1,6 @@
+*.sqlite3
 env/
-.env
-
-.sqlite3
-
-__pycache__/
-migrations/
-
 .vscode/
+.env
+sandbox.py
+*__pycache__/
