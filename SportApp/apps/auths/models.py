@@ -2,7 +2,11 @@ from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
-from django.core.validators import MinLengthValidator
+from django.core.validators import (
+    MinLengthValidator,
+    MinValueValidator,
+    MaxValueValidator,
+)
 
 from abstracts.models import (
     AbstractModel,
@@ -78,6 +82,31 @@ class User(AbstractBaseUser, PermissionsMixin, AbstractModel):
         max_length=128,
         validators=(
             MinLengthValidator(7),
+        )
+    )
+    height: float = models.DecimalField(
+        verbose_name='рост',
+        max_digits=4,
+        decimal_places=1,
+        validators=(
+            MinValueValidator(63.0),
+            MaxValueValidator(247.0)
+        )
+    )
+    weight: float = models.DecimalField(
+        verbose_name='вес',
+        max_digits=4,
+        decimal_places=1,
+        validators=(
+            MinValueValidator(35.0),
+            MaxValueValidator(120.0)
+        )
+    )
+    age: int = models.SmallIntegerField(
+        verbose_name='возраст',
+        validators=(
+            MinValueValidator(7),
+            MaxValueValidator(85)
         )
     )
     is_active: bool = models.BooleanField(
