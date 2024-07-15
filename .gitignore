@@ -4,3 +4,4 @@ env/
 .env
 sandbox.py
 *__pycache__/
+*migrations/
