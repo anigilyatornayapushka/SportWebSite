@@ -7,7 +7,7 @@ import decouple
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(BASE_DIR)
-sys.path.append(os.path.join(BASE_DIR, 'apps'))
+sys.path.append(os.path.join(BASE_DIR, 'backend'))
 
 SECRET_KEY = decouple.config('SECRET_KEY', cast=str)
 
