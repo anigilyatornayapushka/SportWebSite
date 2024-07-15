@@ -8,4 +8,5 @@ from django.urls import (
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('information_pages.urls')),
+    path('', include('auths.urls')),
 ]

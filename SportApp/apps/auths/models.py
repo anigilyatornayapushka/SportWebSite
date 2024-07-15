@@ -91,7 +91,8 @@ class User(AbstractBaseUser, PermissionsMixin, AbstractModel):
         validators=(
             MinValueValidator(63.0),
             MaxValueValidator(247.0)
-        )
+        ),
+        null=True
     )
     weight: float = models.DecimalField(
         verbose_name='вес',
@@ -100,14 +101,16 @@ class User(AbstractBaseUser, PermissionsMixin, AbstractModel):
         validators=(
             MinValueValidator(35.0),
             MaxValueValidator(120.0)
-        )
+        ),
+        null=True
     )
     age: int = models.SmallIntegerField(
         verbose_name='возраст',
         validators=(
             MinValueValidator(7),
             MaxValueValidator(85)
-        )
+        ),
+        null=True
     )
     is_active: bool = models.BooleanField(
         verbose_name='активный ли',

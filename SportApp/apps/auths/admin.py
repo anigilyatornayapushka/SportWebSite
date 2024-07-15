@@ -31,3 +31,5 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('first_name', 'last_name', 'gender', 'is_active'),
         }),
     )
+
+    readonly_fields = ('datetime_updated',)

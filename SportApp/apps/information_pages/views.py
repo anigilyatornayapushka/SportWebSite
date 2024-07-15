@@ -1,51 +1,42 @@
 from django.shortcuts import render
-from django.views import View
+from django import views
 from django.http import (
     HttpRequest,
     HttpResponse,
 )
 
 
-class HomePageView(View):
+class HomePageView(views.View):
     """
     Base page with information about site.
     """
     def get(self, request: HttpRequest) -> HttpResponse:
         return render(request=request,
-                      template_name='homepage.html')
+                      template_name='informations/homepage.html')
 
 
-class SiteMapView(View):
-    """
-    Base page with information about all routes.
-    """
-    def get(self, request: HttpRequest) -> HttpResponse:
-        return render(request=request,
-                      template_name='sitemap.html')
-
-
-class PrivacyPolicyView(View):
+class PrivacyPolicyView(views.View):
     """
     Base page with information about privacy policy.
     """
     def get(self, request: HttpRequest) -> HttpResponse:
         return render(request=request,
-                      template_name='privacy-policy.html')
+                      template_name='informations/privacy-policy.html')
 
 
-class TermsOfUseView(View):
+class TermsOfUseView(views.View):
     """
     Base page with information about terms of use.
     """
     def get(self, request: HttpRequest) -> HttpResponse:
         return render(request=request,
-                      template_name='terms-of-use.html')
+                      template_name='informations/terms-of-use.html')
 
 
-class FAQView(View):
+class FAQView(views.View):
     """
     Base page with answers to the most frequently asked questions.
     """
     def get(self, request: HttpRequest) -> HttpResponse:
         return render(request=request,
-                      template_name='faq.html')
+                      template_name='informations/faq.html')
