@@ -1,11 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <p>hola.</p>
-</body>
-</html>
+{% extends 'defaults/base.html' %}
+
+{% load static %}
+
+{% block title %}Домашняя страница{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'information_pages/css/homepage.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="homepage-container">
+        <h1>Добро пожаловать на Sport Website</h1>
+        <p>Этот проект является учебным и предназначен для восстановления навыков веб-программирования и подготовки к обучению в университете.</p>
+        
+        <img src="{% static 'information_pages/img/homepage-django.png' %}" alt="Sport Image" class="homepage-image">
+        <p>На нашем сайте вы найдете:</p>
+        
+        <h2>1. Калькулятор калорий и БЖУ</h2>
+        <p>Мы предлагаем удобный калькулятор, который позволяет рассчитать вашу дневную потребность в калориях, белках, жирах и углеводах. Встроенный каталог продуктов можно дополнять и настраивать под свои нужды.</p>
+        
+        <img src="{% static 'information_pages/img/homepage-food.png' %}" alt="Calculator Image" class="homepage-image">
+        
+        <h2>2. Список упражнений на разные группы мышц</h2>
+        <p>У нас есть обширный каталог упражнений, охватывающий различные группы мышц. Вы можете легко фильтровать упражнения по категориям, таким как нижняя часть тела, верхняя часть тела, коре и другим.</p>
+        
+        <img src="{% static 'information_pages/img/homepage-sport.png' %}" alt="Exercises Image" class="homepage-image">
+        
+        <h2>3. Расписание тренировок</h2>
+        <p>Создавайте и настраивайте свои персонализированные расписания тренировок. Вы можете делать записи о выполненных тренировках, отмечать прогресс и устанавливать цели. Наше расписание поддерживает гибкие настройки для удобства пользователей.</p>
+        
+        <img src="{% static 'information_pages/img/homepage-schedule.png' %}" alt="Schedule Image" class="homepage-image">
+        
+        <p>Не теряйте времени, начните использовать все возможности сайта прямо сейчас. <a href="{% url 'register' %}">Зарегистрируйтесь</a> или <a href="{% url 'login' %}">войдите</a> в свой аккаунт!</p>
+    </div>
+
+    {% include 'defaults/footer.html' %}
+{% endblock %}
