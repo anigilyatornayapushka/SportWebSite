@@ -1,0 +1,24 @@
+header {
+    text-align: center;
+    margin: 20px auto;
+}
+
+.policy-section {
+    width: 600px;
+    margin: 20px auto;
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.policy-section h2 {
+    color: #333;
+}
+
+.policy-section p {
+    color: #ffffff;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}

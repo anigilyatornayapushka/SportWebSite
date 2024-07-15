@@ -10,7 +10,7 @@ from .views import (
 
 urlpatterns = (
     path('', HomePageView.as_view(), name='homepage'),
-    path('privacy-policy/', PrivacyPolicyView.as_view(), name='privacy_policy'),
-    path('terms-of-use/', TermsOfUseView.as_view(), name='terms_of_use'),
+    path('privacy-policy/', PrivacyPolicyView.as_view(), name='privacy-policy'),
+    path('terms-of-use/', TermsOfUseView.as_view(), name='terms-of-use'),
     path('faq/', FAQView.as_view(), name='faq'),
 )

@@ -13,6 +13,8 @@ from abstracts.models import (
     AbstractManager,
 )
 
+import typing
+
 
 class UserManager(BaseUserManager, AbstractManager):
     """
@@ -20,24 +22,26 @@ class UserManager(BaseUserManager, AbstractManager):
     """
 
     def create_user(self, first_name: str, last_name: str,
-                    gender: int, password: str, email: str) -> 'User':
+                    gender: int, password: str, email: str,
+                    **extra_fields: typing.Any) -> 'User':
         """
         Create default user method.
         """
         u: User = User(first_name=first_name, last_name=last_name, gender=gender,
-                       password=password, email=email)
+                       password=password, email=email, **extra_fields)
         u.set_password(password)
         u.is_active = True
         u.save(using=self._db)
         return u
 
     def create_superuser(self, first_name: str, last_name: str,
-                    gender: int, password: str, email: str) -> 'User':
+                    gender: int, password: str, email: str,
+                    **extra_fields: typing.Any) -> 'User':
         """
         Create admin method.
         """
         u: User = User(first_name=first_name, last_name=last_name, gender=gender,
-                       password=password, email=email)
+                       password=password, email=email, **extra_fields)
         u.set_password(password)
         u.is_active = True
         u.is_staff = True
@@ -84,31 +88,27 @@ class User(AbstractBaseUser, PermissionsMixin, AbstractModel):
             MinLengthValidator(7),
         )
     )
-    height: float = models.DecimalField(
+    height: float = models.PositiveSmallIntegerField(
         verbose_name='рост',
-        max_digits=4,
-        decimal_places=1,
         validators=(
-            MinValueValidator(63.0),
-            MaxValueValidator(247.0)
+            MinValueValidator(100),
+            MaxValueValidator(210)
         ),
         null=True
     )
-    weight: float = models.DecimalField(
+    weight: float = models.PositiveSmallIntegerField(
         verbose_name='вес',
-        max_digits=4,
-        decimal_places=1,
         validators=(
-            MinValueValidator(35.0),
-            MaxValueValidator(120.0)
+            MinValueValidator(35),
+            MaxValueValidator(120)
         ),
         null=True
     )
-    age: int = models.SmallIntegerField(
+    age: int = models.PositiveSmallIntegerField(
         verbose_name='возраст',
         validators=(
-            MinValueValidator(7),
-            MaxValueValidator(85)
+            MinValueValidator(10),
+            MaxValueValidator(70)
         ),
         null=True
     )
@@ -124,6 +124,7 @@ class User(AbstractBaseUser, PermissionsMixin, AbstractModel):
         verbose_name='администратор ли',
         default=False
     )
+    
     USERNAME_FIELD: str = 'email'
     REQUIRED_FIELDS: tuple = (
         'first_name',

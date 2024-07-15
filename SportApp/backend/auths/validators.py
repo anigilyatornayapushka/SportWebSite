@@ -8,8 +8,8 @@ def validate_name(name: str) -> tuple[bool, list[str]]:
     Check if name is not empty and
     consists of russian letters.
 
-    Return tuple of number 0 if everything okay or
-    1 if there are validation errors and comments of data status.
+    Return tuple of number False if everything okay or
+    True if there are validation errors and comments of data status.
     """
     errors: list[str] = []
 
@@ -20,9 +20,9 @@ def validate_name(name: str) -> tuple[bool, list[str]]:
         errors.append('Должно состоять из русских букв.')
 
     if errors:
-        return 1, errors
+        return True, errors
 
-    return 0, []
+    return False, []
 
 
 def validate_password(password: str) -> tuple[bool, list[str]]:
@@ -30,8 +30,8 @@ def validate_password(password: str) -> tuple[bool, list[str]]:
     Check if password longer than 7 symbols
     and consist of numbers, different cases letters
 
-    Return tuple of number 0 if everything okay or
-    1 if there are validation errors and comments of data status.
+    Return tuple of number False if everything okay or
+    True if there are validation errors and comments of data status.
     """
     errors: list[str] = []
 
@@ -42,17 +42,17 @@ def validate_password(password: str) -> tuple[bool, list[str]]:
         errors.append('Пароль должен состоять из цифр и букв.')
 
     if errors:
-        return 1, errors
+        return True, errors
 
-    return 0, []
+    return False, []
 
 
 def validate_gender(gender: str | int) -> tuple[bool, list[str]]:
     """
     Check if gender exists
 
-    Return tuple of number 0 if everything okay or
-    1 if there are validation errors and comments of data status.
+    Return tuple of number False if everything okay or
+    True if there are validation errors and comments of data status.
     """
     errors: list[str] = []
 
@@ -64,17 +64,17 @@ def validate_gender(gender: str | int) -> tuple[bool, list[str]]:
                       '(1 - мужской, 2 - женский)')
 
     if errors:
-        return 1, errors
+        return True, errors
 
-    return 0, []
+    return False, []
 
 
 def validate_email(email: str) -> tuple[bool, list[str]]:
     """
     Check if email matches pattern.
 
-    Return tuple of number 0 if everything okay or
-    1 if there are validation errors and comments of data status.
+    Return tuple of number False if everything okay or
+    True if there are validation errors and comments of data status.
     """
     errors: list[str] = []
 
@@ -82,6 +82,89 @@ def validate_email(email: str) -> tuple[bool, list[str]]:
         errors.append('Неправильный формат почты.')
 
     if errors:
-        return 1, errors
+        return True, errors
     
-    return 0, []
+    return False, []
+
+
+def validate_unique_user(email: str) -> tuple[bool, list[str]]:
+    """
+    Check and return if user with this email already exists.
+    """
+    errors: list[str] = []
+
+    user: User | None = User.objects.get_object_or_none(email=email)
+
+    if user:
+        errors.append('Пользователь с таким email уже существует.')
+
+    if errors:
+        return True, errors
+
+    return False, []
+
+
+def validate_weight(weight: str | int) -> tuple[bool, list[str]]:
+    """
+    Check if weight matches the range.
+
+    Return tuple of number False if everything okay or
+    True if there are validation errors and comments of data status.
+    """
+    errors: list[str] = []
+
+    if isinstance(weight, str) and weight.isdigit():
+        weight = int(weight)
+        if weight < 35 or weight > 120:
+            errors.append('Вес должен входить в диапазон от 35 до 120 кг.')
+    else:
+        errors.append('Вес должен быть числом.')
+
+    if errors:
+        return True, errors
+    
+    return False, []
+
+
+def validate_height(height: str | int) -> tuple[bool, list[str]]:
+    """
+    Check if height matches the range.
+
+    Return tuple of number False if everything okay or
+    True if there are validation errors and comments of data status.
+    """
+    errors: list[str] = []
+
+    if isinstance(height, str) and height.isdigit():
+        height = int(height)
+        if height < 35 or height > 120:
+            errors.append('Высота должна входить в диапазон от 100 до 210 см.')
+    else:
+        errors.append('Высота должна быть числом.')
+
+    if errors:
+        return True, errors
+    
+    return False, []
+
+
+def validate_age(age: str | int) -> tuple[bool, list[str]]:
+    """
+    Check if age matches the range.
+
+    Return tuple of number False if everything okay or
+    True if there are validation errors and comments of data status.
+    """
+    errors: list[str] = []
+
+    if isinstance(age, str) and age.isdigit():
+        age = int(age)
+        if age < 10 or age > 70:
+            errors.append('Возраст должен входить в диапазон от 35 до 120.')
+    else:
+        errors.append('Возраст должен быть числом.')
+
+    if errors:
+        return True, errors
+    
+    return False, []
