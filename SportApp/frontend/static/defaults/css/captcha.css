@@ -1,0 +1,8 @@
+.captcha-example, .captcha-check {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 45px;
+    text-align: center;
+    border: 1px solid #cccccc;
+}

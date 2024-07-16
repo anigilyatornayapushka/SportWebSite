@@ -6,6 +6,7 @@
 
 {% block styles %}
     <link rel="stylesheet" href="{% static 'auths/css/register.css' %}">
+    <link rel="stylesheet" href="{% static 'defaults/css/captcha.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -77,20 +78,22 @@
                 <input type="number" id="weight" name="weight" min="35" max="120" value="63">
             </div>
         </div>
-
+        
         <div class="captcha">
-            <p class="captcha-example"></p>
-            <input type="text" class="captcha-check" maxlength="6" placeholder="Введите капчу">
+            {% include 'defaults/captcha.html' %}
             <button type="submit">Зарегистрироваться</button>
         </div>
+        
+        <p class="login-link"><a href="{% url 'login' %}">Войдите</a> в аккаунт, если он уже у вас есть</p>
 
     </form>
 
 </div>
-    {% include 'defaults/footer.html' %}
+
+{% include 'defaults/footer.html' %}
+{% endblock %}
 
 {% block scripts %}
     <script src="{% static 'auths/js/register.js' %}"></script>
-{% endblock %}
-
+    <script src="{% static 'defaults/js/captcha.js' %}"></script>
 {% endblock %}

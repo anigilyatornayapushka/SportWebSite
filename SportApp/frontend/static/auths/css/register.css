@@ -26,7 +26,7 @@ form select {
     padding: 10px;
     margin-bottom: 10px;
     font-size: 16px;
-    border: 1px solid #ccc;
+    border: 1px solid #cccccc;
     border-radius: 4px;
     box-sizing: border-box;
     outline: none;
@@ -55,6 +55,10 @@ form button[type="submit"]:active {
     color: #aaaaaa;
 }
 
+.login-link {
+    text-align: center;
+}
+
 .captcha {
     display: flex;
     flex-direction: row;
@@ -66,12 +70,19 @@ form button[type="submit"]:active {
 }
 
 .captcha * {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 28%;
-    max-width: 28%;
-    height: 45px;
-    text-align: center;
-    border: 1px solid #1f1f1f;
+    max-width: 30%;
+    width: 30%;
+}
+
+a {
+    color: rgb(45, 87, 212);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+footer {
+    margin-top: auto;
 }

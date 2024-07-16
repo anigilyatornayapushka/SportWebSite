@@ -1,8 +1,15 @@
-from django.shortcuts import render
+from django.shortcuts import (
+    render,
+    redirect,
+)
 from django import views
 from django.http import (
     HttpRequest,
     HttpResponse,
+)
+from django.contrib.auth import (
+    authenticate,
+    login,
 )
 
 from .validators import (
@@ -94,3 +101,35 @@ class LoginView(views.View):
     def get(self, request: HttpRequest) -> HttpResponse:
         return render(request=request,
                       template_name='auths/login.html')
+
+    def post(self, request: HttpRequest) -> HttpResponse:
+        authentication_errors = {'errors': {}}
+
+        email: str = request.POST.get('email')
+        password: str = request.POST.get('password')
+
+        is_error, errors = validate_email(email)
+
+        if is_error:
+            authentication_errors['errors']['email'] = errors
+
+        is_error, errors = validate_password(password)
+
+        if is_error:
+            authentication_errors['errors']['password'] = errors
+
+        if authentication_errors.get('errors'):
+            return render(request=request, template_name='auths/login.html',
+                          context=authentication_errors, status=401)
+
+        user: User | None = authenticate(request=request,
+                                  email=email, password=password)
+
+        if not user:
+            return render(request=request, template_name='auths/login.html',
+                          context={'user_not_found': 'Пользователь с таким '
+                                   'логином или паролем не найден'}, status=401)
+
+        login(request=request, user=user)
+
+        return redirect('profile')
