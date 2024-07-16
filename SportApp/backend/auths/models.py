@@ -104,12 +104,8 @@ class User(AbstractBaseUser, PermissionsMixin, AbstractModel):
         ),
         null=True
     )
-    age: int = models.PositiveSmallIntegerField(
+    birthday: int = models.DateField(
         verbose_name='возраст',
-        validators=(
-            MinValueValidator(10),
-            MaxValueValidator(70)
-        ),
         null=True
     )
     is_active: bool = models.BooleanField(

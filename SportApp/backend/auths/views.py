@@ -12,6 +12,8 @@ from django.contrib.auth import (
     login,
 )
 
+import datetime
+
 from .validators import (
     validate_email,
     validate_unique_user,
@@ -23,6 +25,7 @@ from .validators import (
     validate_weight,
 )
 from .models import User
+from .utils import datefy
 
 
 class RegistrationView(views.View):
@@ -42,7 +45,7 @@ class RegistrationView(views.View):
         email: str = request.POST.get('email')
         password: str = request.POST.get('password')
         height: str = request.POST.get('height')
-        age: str = request.POST.get('age')
+        birthday: str = request.POST.get('birthday')
         weight: str = request.POST.get('weight')
         gender: str = request.POST.get('gender')
 
@@ -70,9 +73,15 @@ class RegistrationView(views.View):
         if is_error:
             context_errors['weight'] = errors
 
-        is_error, errors = validate_age(age)
+        datefy_birthday: datetime.date | str
+        is_error, datefy_birthday = datefy(birthday)
         if is_error:
-            context_errors['age'] = errors
+            context_errors['birthday'] = datefy_birthday
+        else:
+            birthday = datefy_birthday
+            is_error, errors = validate_age(birthday)
+            if is_error:
+                context_errors['birthday'] = errors
 
         is_error, errors = validate_gender(gender)
         if is_error:
@@ -88,7 +97,7 @@ class RegistrationView(views.View):
 
         User.objects.create_user(email=email, password=password, first_name=first_name,
                             last_name=last_name, gender=int(gender), height=int(height),
-                            weight=int(weight), age=int(age))
+                            weight=int(weight), birthday=birthday)
 
         return render(request=request, template_name='auths/register.html',
                       context={'unique_user': True}, status=201)

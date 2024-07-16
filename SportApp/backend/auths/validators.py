@@ -1,6 +1,9 @@
 import re
+import datetime
 
 from auths.models import User
+
+from .utils import datefy
 
 
 def validate_name(name: str) -> tuple[bool, list[str]]:
@@ -148,23 +151,25 @@ def validate_height(height: str | int) -> tuple[bool, list[str]]:
     return False, []
 
 
-def validate_age(age: str | int) -> tuple[bool, list[str]]:
+def validate_age(date: str | datetime.date) -> tuple[bool, list[str]]:
     """
-    Check if age matches the range.
+    Check if user's age matches the conditions.
 
     Return tuple of number False if everything okay or
     True if there are validation errors and comments of data status.
     """
     errors: list[str] = []
 
-    if isinstance(age, str) and age.isdigit():
-        age = int(age)
-        if age < 10 or age > 70:
-            errors.append('Возраст должен входить в диапазон от 35 до 120.')
+    if isinstance(date, str) and not re.match(r'\d{2}\.\d{2}\.\d{4}', date):
+        errors.append('Дата не соответствует формату ДД/ММ/ГГГГ.')
+
     else:
-        errors.append('Возраст должен быть числом.')
+        date = datefy(date)
+
+    if date > datetime.date.today() - datetime.timedelta(days=365*14):
+        errors.append('Пользователь должен быть старше 14 лет.')
 
     if errors:
         return True, errors
-    
+
     return False, []

@@ -17,10 +17,7 @@ form label {
     margin-bottom: 5px;
 }
 
-form input[type="text"],
-form input[type="email"],
-form input[type="password"],
-form input[type="number"],
+form input,
 form select {
     width: 100%;
     padding: 10px;
