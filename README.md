@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Sport Web Server
 
 ## Overview
@@ -23,3 +24,6 @@ Register using the link, log in to your account and start using the application
 
 ## License
 This project is licensed under the [MIT License](https://github.com/anigilyatornayapushka/SportWebSite/blob/main/LICENSE).
+=======
+# SportWebSite
+>>>>>>> 551a0d11b02d1f6d62231355a4c387dc627f8284
