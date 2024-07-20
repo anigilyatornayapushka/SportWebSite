@@ -47,7 +47,7 @@ checkEmail = (event) => {
 checkPassword = (event) => {
     const data = document.querySelector("#password");
 
-    if (/^[a-zA-Z0-9]{7,}$/.test(data.value)) {
+    if (/^[a-zA-Z0-9]{7,128}$/.test(data.value)) {
         data.style.border = "1px solid #31965e";
         document.querySelector("#password_hint_1").style.color = "#31965e";
     } else {

@@ -41,7 +41,7 @@ def validate_password(password: str) -> tuple[bool, list[str]]:
     if len(password) < 7 or len(password) > 128:
         errors.append('Пароль должен быть от 7 до 128 символов.')
 
-    if (password.isalpha() or password.isdigit()) and not password.isalnum():
+    if re.match(r'^[a-zA-Z]+$', password) or password.isdigit():
         errors.append('Пароль должен состоять из цифр и букв.')
 
     if errors:

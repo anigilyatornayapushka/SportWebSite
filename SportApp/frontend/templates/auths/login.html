@@ -52,9 +52,14 @@
                 {% include 'defaults/captcha.html' %}
             </div>
 
-            <p class="register-text">Еще нет аккаунта?
-                <a href="{% url 'register' %}">Зарегистрироваться</a>
-            </p>
+            <div class="links">
+                <p class="register-text">Еще нет аккаунта?
+                    <a href="{% url 'register' %}">Зарегистрироваться</a>
+                </p>
+                <p class="register-text">Забыли пароль?
+                    <a href="{% url 'restore-password' %}">Восстановите его</a>
+                </p>
+            </div>
 
             <button type="submit">Войти в аккаунт</button>
         </form>

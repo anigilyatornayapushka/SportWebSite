@@ -102,3 +102,14 @@ STATICFILES_DIRS = (
 )
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# EMAIL-HOST
+# ---------------------------------------------------------------------
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST = decouple.config('EMAIL_HOST', cast=str)
+EMAIL_HOST_USER = decouple.config('EMAIL_HOST_USER', cast=str)
+EMAIL_HOST_PASSWORD = decouple.config('EMAIL_HOST_PASSWORD', cast=str)
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

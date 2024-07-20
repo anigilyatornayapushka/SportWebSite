@@ -11,9 +11,12 @@ from django.contrib.auth import (
     authenticate,
     login,
 )
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models.query import QuerySet
 
 import datetime
 
+from services.email_sender import TextEmailSender
 from .validators import (
     validate_email,
     validate_unique_user,
@@ -24,7 +27,10 @@ from .validators import (
     validate_height,
     validate_weight,
 )
-from .models import User
+from .models import (
+    User,
+    ResetPasswordCode,
+)
 from .utils import datefy
 
 
@@ -129,7 +135,7 @@ class LoginView(views.View):
 
         if authentication_errors.get('errors'):
             return render(request=request, template_name='auths/login.html',
-                          context=authentication_errors, status=401)
+                          context=authentication_errors, status=400)
 
         user: User | None = authenticate(request=request,
                                   email=email, password=password)
@@ -137,8 +143,146 @@ class LoginView(views.View):
         if not user:
             return render(request=request, template_name='auths/login.html',
                           context={'user_not_found': 'Пользователь с таким '
-                                   'логином или паролем не найден'}, status=401)
+                                   'логином или паролем не найден'}, status=400)
 
         login(request=request, user=user)
+
+        return redirect('profile')
+
+class RestorePasswordView(views.View):
+    """
+    View for user to restore their password.
+    """
+    def get(self, request: HttpRequest) -> HttpResponse:
+        return render(request=request, template_name='auths/restore-password.html',
+                      context={'stage': 1}, status=200)
+
+    def post(self, request: HttpRequest) -> HttpResponse:
+        stage: str = request.POST.get('stage')
+
+        if stage == '1':
+            email: str = request.POST.get('email')
+
+            is_error, errors = validate_email(email)
+
+            if is_error:
+                return render(request=request, template_name='auths/restore-password.html',
+                            context={'stage': 1, 'errors': errors}, status=400)
+
+            user: User | None = User.objects.get_object_or_none(email=email)
+
+            if not user:
+                errors = ['Пользователь с данным email не найден.']
+                return render(request=request, template_name='auths/restore-password.html',
+                            context={'stage': 1, 'errors': errors}, status=400)
+
+            reset_password_code = ResetPasswordCode(user=user)
+            reset_password_code.save()
+
+            message = (
+                f'Здравствуйте, {user.full_name}!\n'
+                'Вы запросили восстановление пароля для вашего аккаунта на Sport WebSite.\n'
+                'Для завершения процесса восстановления пароля, пожалуйста, используйте следующий код:\n'
+                f'Восстановительный код: {reset_password_code.code}.\n'
+                f'Срок действия кода: {reset_password_code.LIFETIME} минут.\n'
+                'Пожалуйста, введите этот код на странице восстановления пароля, '
+                'а также укажите новый пароль.\n'
+                'Если вы не запрашивали восстановление пароля, проигнорируйте это сообщение. '
+                'Ваш пароль останется в безопасности.\n'
+                'Если у вас возникли вопросы или проблемы, вы можете связаться с '
+                'нами по одному из контаков в низу главной страницы сайта.\n'
+                'С уважением,\n'
+                'Команда Sport WebSite'
+            )
+            TextEmailSender(send_to=email, subject='Sport WebSite. Сброс пароля',
+                            message=message).send_email()
+
+            return render(request=request, template_name='auths/restore-password.html',
+                          context={'stage': 2, 'email': email}, status=200)
+
+        elif stage == '2':
+            email: str = request.POST.get('email')
+            reset_code: str = request.POST.get('reset_code')
+            new_password: str = request.POST.get('new_password')
+            confirm_password: str = request.POST.get('confirm_password')
+
+            is_error, errors = validate_email(email)
+            if is_error:
+                context = {'stage': 2, 'errors': errors, 'email': email}
+                return render(request=request, template_name='auths/restore-password.html',
+                              context=context, status=400)
+
+            is_error, errors = validate_password(new_password)
+            if is_error:
+                context = {'stage': 2, 'errors': errors, 'email': email}
+                return render(request=request, template_name='auths/restore-password.html',
+                              context=context, status=400)
+            
+            if new_password != confirm_password:
+                context = {'stage': 2, 'errors': ['Пароли должны совпадать.'], 'email': email}
+                return render(request=request, template_name='auths/restore-password.html',
+                              context=context, status=400)
+
+            user: User | None = User.objects.get_object_or_none(email=email)
+
+            if not user:
+                errors = ['Пользователь с данным email не найден.']
+                return render(request=request, template_name='auths/restore-password.html',
+                              context={'stage': 1, 'errors': errors}, status=400)
+            
+            active_codes: QuerySet[ResetPasswordCode] | None = \
+                user.reset_password_codes.get_active_codes()
+            correct_codes: QuerySet[ResetPasswordCode] | None = \
+                active_codes.filter(code=reset_code)
+            if not correct_codes.exists():
+                errors = ['Данный код не существует.']
+                return render(request=request, template_name='auths/restore-password.html',
+                              context={'stage': 2, 'errors': errors}, status=400)
+
+            user.set_password(new_password)
+            user.save()
+            login(request=request, user=user)
+
+            return redirect('profile')
+
+        else:
+            errors = ['Стадий восстановления всего две.']
+            return render(request=request, template_name='auths/restore-password.html',
+                        context={'stage': 1, 'errors': errors}, status=400)
+
+
+
+class ChangePasswordView(LoginRequiredMixin, views.View):
+    """
+    View for user to change their password.
+    """
+    def get(self, request: HttpRequest) -> HttpResponse:
+        return render(request=request, template_name='auths/change-password.html')
+
+    def post(self, request: HttpRequest) -> HttpResponse:
+        old_password: str = request.POST.get('old_password')
+        new_password: str = request.POST.get('new_password')
+        confirm_password: str = request.POST.get('confirm_password')
+
+        current_user: User = request.user
+
+        context_errors = []
+
+        if not current_user.check_password(old_password):
+            context_errors.append('Старый пароль не подходит.')
+
+        if new_password != confirm_password:
+            context_errors.append('Пароли не совпадают.')
+
+        is_error, errors = validate_password(new_password)
+        if is_error:
+            context_errors.extend(errors)
+
+        if context_errors:
+            return render(request=request, template_name='auths/change-password.html',
+                          context={'errors': context_errors}, status=400)
+
+        current_user.set_password(new_password)
+        current_user.save()
 
         return redirect('profile')

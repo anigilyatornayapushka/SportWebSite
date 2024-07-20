@@ -40,3 +40,12 @@ class FAQView(views.View):
     def get(self, request: HttpRequest) -> HttpResponse:
         return render(request=request,
                       template_name='informations/faq.html')
+
+
+class ProfileView(views.View):
+    """
+    Base page with information about user.
+    """
+    def get(self, request: HttpRequest) -> HttpResponse:
+        return render(request=request,
+                      template_name='informations/profile.html')

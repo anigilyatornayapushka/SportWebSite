@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.query import QuerySet
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
@@ -7,6 +8,7 @@ from django.core.validators import (
     MinValueValidator,
     MaxValueValidator,
 )
+from django.utils import timezone
 
 from abstracts.models import (
     AbstractModel,
@@ -14,6 +16,8 @@ from abstracts.models import (
 )
 
 import typing
+import datetime
+import random
 
 
 class UserManager(BaseUserManager, AbstractManager):
@@ -133,11 +137,49 @@ class User(AbstractBaseUser, PermissionsMixin, AbstractModel):
 
     @property
     def full_name(self) -> str:
-        return f'< [{self.id}] {self.last_name} {self.first_name} >'
+        return f'{self.last_name} {self.first_name}'
 
     def __str__(self) -> str:
-        return self.full_name
+        return f'< [{self.id}] {self.last_name} {self.first_name} >'
 
     class Meta:
         verbose_name = 'пользователь'
         verbose_name_plural = 'пользователи'
+
+
+class ResetPasswordCodeManager(models.Manager):
+    """
+    Manager for ResetPasswordCode.
+    """
+    def get_active_codes(self) -> QuerySet['ResetPasswordCode'] | None:
+        return self.filter(expires_at__gt=timezone.now())
+
+
+class ResetPasswordCode(models.Model):
+    """
+    Code for password resetting.
+    """
+    LIFETIME: int = 5 # minutes
+    expires_at: datetime.datetime = models.DateTimeField(
+        verbose_name='время истечения действительности'
+    )
+    code: int = models.PositiveSmallIntegerField(
+        verbose_name='код'
+    )
+    user: User = models.ForeignKey(
+        verbose_name='пользователь',
+        to=User,
+        on_delete=models.CASCADE,
+        related_name='reset_password_codes'
+    )
+
+    objects: ResetPasswordCodeManager = ResetPasswordCodeManager()
+
+    def save(self, *args, **kwargs) -> None:
+        self.expires_at = timezone.now() + datetime.timedelta(minutes=self.LIFETIME)
+        self.code = random.randrange(10**7, 10**8)
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = 'код восстановления'
+        verbose_name_plural = 'коды восстановления'

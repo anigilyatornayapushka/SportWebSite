@@ -14,7 +14,7 @@ form.addEventListener("submit", (event) => {
 
     const data2 = document.querySelector("#password");
 
-    if (/^[a-zA-Z0-9]{7,}$/.test(data2.value)) {
+    if (/^[a-zA-Z0-9]{7,128}$/.test(data2.value)) {
         data2.style.border = "1px solid #31965e";
         document.querySelector("#password_hint_1").style.color = "#31965e";
     } else {
