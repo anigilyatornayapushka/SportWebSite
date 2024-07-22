@@ -1,0 +1,14 @@
+exclude = [
+    "env",
+    "SportApp/settings"
+]
+line-length=79
+target-version = "py312"
+
+[lint]
+select = ["E", "W", "F"]
+ignore = ["W191"]
+
+[format]
+quote-style = "single"
+indent-style = "tab"
