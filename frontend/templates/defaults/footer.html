@@ -1,0 +1,29 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='defaults/css/footer.css') }}">
+
+<footer class="dark-footer">
+    <div class="footer-content">
+        <div class="contact-info">
+            <p>Контактные данные:</p>
+            <ul>
+                <li>VK: <a href="https://vk.com/yyycka" target="_blank">yyycka</a></li>
+                <li>Telegram: <a href="https://t.me/zusjjaka" target="_blank">zusjjaka</a></li>
+                <li>Email: <a href="mailto:zinchenkobogdan123@gmail.com">zinchenkobogdan123@gmail.com</a></li>
+            </ul>
+        </div>
+        <div class="footer-links">
+            <ul>
+                <li><a href="/">Домашняя страница</a></li>
+                <li><a href="{{ url_for('faq') }}">FAQ</a></li>
+                <li><a href="{{ url_for('privacy_policy') }}">Политика конфиденциальности</a></li>
+                <li><a href="{{ url_for('terms_of_use') }}">Условия использования</a></li>
+                <li><a href="{{ url_for('profile') }}">Профиль пользователя</a></li>
+            </ul>
+        </div>
+        <div class="copyright">
+            <p>
+                <a href="{{ url_for('register') }}">Зарегистрируйтесь</a> или <a href="{{ url_for('login') }}">войдите</a> в свой аккаунт!
+            </p>
+            <a class="license-link" href="https://github.com/anigilyatornayapushka/SportWebSite/blob/main/LICENSE" target="_blank">&copy; 2024 Все права защищены SportWebSite</a>
+        </div>
+    </div>
+</footer>
