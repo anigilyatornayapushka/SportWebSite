@@ -9,7 +9,7 @@ def validate_name(name: str) -> tuple[bool, list[str]]:
 	Check if name is not empty and
 	consists of russian letters.
 
-	Return tuple of number False if everything okay or
+	Return tuple of False if everything okay or
 	True if there are validation errors and comments of data status.
 	"""
 	errors: list[str] = []
@@ -31,7 +31,7 @@ def validate_password(password: str) -> tuple[bool, list[str]]:
 	Check if password longer than 7 symbols
 	and consist of numbers, different cases letters
 
-	Return tuple of number False if everything okay or
+	Return tuple of False if everything okay or
 	True if there are validation errors and comments of data status.
 	"""
 	errors: list[str] = []
@@ -52,7 +52,7 @@ def validate_gender(gender: str | int) -> tuple[bool, list[str]]:
 	"""
 	Check if gender exists
 
-	Return tuple of number False if everything okay or
+	Return tuple of False if everything okay or
 	True if there are validation errors and comments of data status.
 	"""
 	errors: list[str] = []
@@ -73,7 +73,7 @@ def validate_email(email: str) -> tuple[bool, list[str]]:
 	"""
 	Check if email matches pattern.
 
-	Return tuple of number False if everything okay or
+	Return tuple of False if everything okay or
 	True if there are validation errors and comments of data status.
 	"""
 	errors: list[str] = []
@@ -87,28 +87,11 @@ def validate_email(email: str) -> tuple[bool, list[str]]:
 	return False, []
 
 
-def validate_unique_user(email: str) -> tuple[bool, list[str]]:
-	"""
-	Check and return if user with this email already exists.
-	"""
-	errors: list[str] = []
-
-	user: User | None = User.objects.filter(email=email)
-
-	if user:
-		errors.append('Пользователь с таким email уже существует.')
-
-	if errors:
-		return True, errors
-
-	return False, []
-
-
 def validate_weight(weight: int) -> tuple[bool, list[str]]:
 	"""
 	Check if weight matches the range.
 
-	Return tuple of number False if everything okay or
+	Return tuple of False if everything okay or
 	True if there are validation errors and comments of data status.
 	"""
 	errors: list[str] = []
@@ -126,7 +109,7 @@ def validate_height(height: int) -> tuple[bool, list[str]]:
 	"""
 	Check if height matches the range.
 
-	Return tuple of number False if everything okay or
+	Return tuple of False if everything okay or
 	True if there are validation errors and comments of data status.
 	"""
 	errors: list[str] = []
@@ -144,7 +127,7 @@ def validate_age(date: datetime.date) -> tuple[bool, list[str]]:
 	"""
 	Check if user's age matches the conditions.
 
-	Return tuple of number False if everything okay or
+	Return tuple of False if everything okay or
 	True if there are validation errors and comments of data status.
 	"""
 	errors: list[str] = []
@@ -155,4 +138,22 @@ def validate_age(date: datetime.date) -> tuple[bool, list[str]]:
 	if errors:
 		return True, errors
 
+	return False, []
+
+
+def validate_code(code: int) -> tuple[bool, list[str]]:
+	"""
+	Check if auth code have righ format.
+
+	Return tuple of False if everything okay or
+	True if there are validation errors and comments of data status.
+	"""
+	errors: list[str] = []
+
+	if code >= 10**8 or code < 10**7:
+		errors.append('Код должен быть числом от 10000000 до 99999999.')
+
+	if errors:
+		return True, errors
+	
 	return False, []

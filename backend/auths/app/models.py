@@ -41,7 +41,6 @@ class UserManager(BaseUserManager):
 			**extra_fields,
 		)
 		u.set_password(password)
-		u.is_active = True
 		u.save(using=self._db)
 		return u
 
@@ -86,13 +85,23 @@ class User(AbstractBaseUser, PermissionsMixin):
 		(FEMALE, 'женский'),
 	)
 
-	first_name: str = models.CharField(verbose_name='имя', max_length=45)
-	last_name: str = models.CharField(verbose_name='фамилия', max_length=45)
+	first_name: str = models.CharField(
+		verbose_name='имя',
+		max_length=45
+	)
+	last_name: str = models.CharField(
+		verbose_name='фамилия',
+		max_length=45
+	)
 	gender: int = models.PositiveSmallIntegerField(
-		verbose_name='пол', choices=GENDERS, null=True
+		verbose_name='пол',
+		choices=GENDERS,
+		null=True
 	)
 	email: str = models.CharField(
-		verbose_name='почта', max_length=60, unique=True
+		verbose_name='почта',
+		max_length=60,
+		unique=True
 	)
 	password: str = models.CharField(
 		verbose_name='пароль',
@@ -109,15 +118,21 @@ class User(AbstractBaseUser, PermissionsMixin):
 		validators=(MinValueValidator(35), MaxValueValidator(120)),
 		null=True,
 	)
-	birthday: int = models.DateField(verbose_name='возраст', null=True)
+	birthday: int = models.DateField(
+		verbose_name='возраст',
+		null=True
+	)
 	is_active: bool = models.BooleanField(
-		verbose_name='активный ли', default=False
+		verbose_name='активный ли', 
+		default=False
 	)
 	is_staff: bool = models.BooleanField(
-		verbose_name='сотрудник ли', default=False
+		verbose_name='сотрудник ли',
+	default=False
 	)
 	is_superuser: bool = models.BooleanField(
-		verbose_name='администратор ли', default=False
+		verbose_name='администратор ли',
+		default=False
 	)
 
 	USERNAME_FIELD: str = 'email'
@@ -142,33 +157,45 @@ class User(AbstractBaseUser, PermissionsMixin):
 		verbose_name_plural = 'пользователи'
 
 
-class ResetPasswordCodeManager(models.Manager):
+class AuthCodeManager(models.Manager):
 	"""
 	Manager for ResetPasswordCode.
 	"""
 
-	def get_active_codes(self) -> QuerySet['ResetPasswordCode'] | None:
+	def get_active_codes(self) -> QuerySet['AuthCode'] | None:
 		return self.filter(expires_at__gt=timezone.now())
 
 
-class ResetPasswordCode(models.Model):
+class AuthCode(models.Model):
 	"""
 	Code for password resetting.
 	"""
 
-	LIFETIME: int = 5  # minutes
+	RESET_PASSWORD_CODE = 1
+	ACTIVATE_ACCOUNT_CODE = 2
+	CODE_TYPES = (
+		(RESET_PASSWORD_CODE, 'восстановление пароля'),
+		(ACTIVATE_ACCOUNT_CODE, 'активация аккаунта'),
+	)
+	LIFETIME = 5  # minutes
 	expires_at: datetime.datetime = models.DateTimeField(
 		verbose_name='время истечения действительности'
 	)
-	code: int = models.PositiveSmallIntegerField(verbose_name='код')
+	code: int = models.PositiveSmallIntegerField(
+		verbose_name='код'
+	)
+	code_type: int = models.PositiveSmallIntegerField(
+		verbose_name='тип кода',
+		choices=CODE_TYPES
+	)
 	user: User = models.ForeignKey(
 		verbose_name='пользователь',
 		to=User,
 		on_delete=models.CASCADE,
-		related_name='reset_password_codes',
+		related_name='auth_codes',
 	)
 
-	objects: ResetPasswordCodeManager = ResetPasswordCodeManager()
+	objects: AuthCodeManager = AuthCodeManager()
 
 	def save(self, *args, **kwargs) -> None:
 		self.expires_at = timezone.now() + datetime.timedelta(

@@ -12,7 +12,6 @@ from django.contrib.auth import (
 	login,
 )
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models.query import QuerySet
 
 from rest_framework import status
 from rest_framework.request import Request
@@ -25,20 +24,26 @@ import json
 
 from .serializers import (
 	RegistrationSerializer,
+	RestorePasswordSerializer,
+	AuthCodeSerializer,
 )
 from .validators import (
 	validate_email,
-	validate_unique_user,
 	validate_gender,
 	validate_name,
 	validate_password,
 	validate_age,
 	validate_height,
 	validate_weight,
+	validate_code,
 )
 from .models import (
 	User,
-	ResetPasswordCode,
+	AuthCode,
+)
+from .services import (
+	ActivateAccountHandler,
+	RestorePasswordHandler,
 )
 
 
@@ -89,19 +94,67 @@ class RegistrationView(APIView):
 			if is_error:
 				context_errors['gender'] = errors
 
-			is_error, errors = validate_unique_user(data.get('email'))
-			if is_error:
-				context_errors['unique_user'] = False
-
 			if context_errors:
 				return Response(
-					{'error': context_errors}, status.HTTP_401_UNAUTHORIZED
+					{'errors': context_errors}, status.HTTP_401_UNAUTHORIZED
 				)
 
-			serializer.save()
+			user: User | None = User.objects.filter(email=data.get('email')).last()
 
-			return Response({'unique_user': True}, status.HTTP_201_CREATED)
+			if user and user.is_active:
+				return Response(
+					{'errors': ['Пользователь с таким email уже существует']},
+	  				status.HTTP_401_UNAUTHORIZED
+				)
 
+			user = serializer.save()
+
+			activation_code = AuthCode(user=user)
+			activation_code.code_type = AuthCode.ACTIVATE_ACCOUNT_CODE
+			activation_code.save()
+
+			message_body = (
+				f'Здравствуйте, {user.full_name}!\n'
+				'Поздравляем с созданием аккаунта на Sport WebSite.\n'
+				'Для завершения регистрации и активации вашего аккаунта, пожалуйста, используйте следующий код активации:\n'
+				f'Код активации: {activation_code.code}\n'
+				f'Срок действия кода: {activation_code.LIFETIME} минут.\n'
+				f'Ссылка для ввода кода: http://127.0.0.1:5000/activate-code/{user.email}/2/\n'
+				'Пожалуйста, введите этот код на странице активации аккаунта.\n'
+				'Если вы не регистрировались на нашем сайте, проигнорируйте это сообщение. Ваш email не будет использован для активации.\n'
+				'Если у вас возникли вопросы или проблемы, вы можете связаться с нами по одному из контактов внизу главной страницы сайта.\n'
+				'С уважением,\n'
+				'Команда Sport WebSite'
+			)
+			connection = pika.BlockingConnection(
+				pika.ConnectionParameters('localhost')
+			)
+			channel = connection.channel()
+			channel.queue_declare(queue='email_queue')
+			message: str = json.dumps(
+				{
+					'send_to': user.email,
+					'subject': 'Активация аккаунта',
+					'message': message_body,
+				}
+			)
+			channel.basic_publish(
+				exchange='', routing_key='email_queue', body=message
+			)
+
+			connection.close()
+
+			return Response({}, status.HTTP_201_CREATED)
+
+		err: str | None = serializer.errors.get('email')
+		if err and str(err[0]) == 'пользователь с таким почта уже существует.':
+			email = request.data.get('email')
+			user: User = User.objects.get(email=email)
+			if user.is_active == False:
+				user.delete()
+				serializer.is_valid = True
+				serializer.save()
+				return Response({}, status.HTTP_201_CREATED)
 		return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
@@ -157,47 +210,37 @@ class LoginView(views.View):
 		return redirect('profile/')
 
 
-class RestorePasswordView(views.View):
+class RestorePasswordView(APIView):
 	"""
-	View for user to restore their password.
+	View for users to restore their passwords.
 	"""
-
-	def get(self, request: HttpRequest) -> HttpResponse:
-		return render(
-			request=request,
-			template_name='auths/restore-password.html',
-			context={'stage': 1},
-			status=200,
+	def post(self, request: Request) -> Response:
+		serializer: RestorePasswordSerializer = RestorePasswordSerializer(
+			data=request.data
 		)
 
-	def post(self, request: HttpRequest) -> HttpResponse:
-		stage: str = request.POST.get('stage')
+		if serializer.is_valid():
+			data = serializer.validated_data
 
-		if stage == '1':
-			email: str = request.POST.get('email')
+			context_errors = {}
 
-			is_error, errors = validate_email(email)
-
+			is_error, errors = validate_email(data.get('email'))
 			if is_error:
-				return render(
-					request=request,
-					template_name='auths/restore-password.html',
-					context={'stage': 1, 'errors': errors},
-					status=400,
+				context_errors['email'] = errors
+
+			if context_errors:
+				return Response(
+					{'errors': context_errors}, status.HTTP_400_BAD_REQUEST
 				)
 
-			user: User | None = User.objects.filter(email=email)
+			user: User | None = User.objects.filter(email=data.get('email')).last()
 
 			if not user:
 				errors = ['Пользователь с данным email не найден.']
-				return render(
-					request=request,
-					template_name='auths/restore-password.html',
-					context={'stage': 1, 'errors': errors},
-					status=400,
-				)
+				return Response({'errors': errors}, status.HTTP_400_BAD_REQUEST)
 
-			reset_password_code = ResetPasswordCode(user=user)
+			reset_password_code = AuthCode(user=user)
+			reset_password_code.code_type = AuthCode.RESET_PASSWORD_CODE
 			reset_password_code.save()
 
 			message_body = (
@@ -206,6 +249,7 @@ class RestorePasswordView(views.View):
 				'Для завершения процесса восстановления пароля, пожалуйста, используйте следующий код:\n'  # noqa: E501
 				f'Восстановительный код: {reset_password_code.code}.\n'
 				f'Срок действия кода: {reset_password_code.LIFETIME} минут.\n'
+				f'Ссылка для ввода кода: http://127.0.0.1:5000/activate-code/{user.email}/1/\n'
 				'Пожалуйста, введите этот код на странице восстановления пароля, '  # noqa: E501
 				'а также укажите новый пароль.\n'
 				'Если вы не запрашивали восстановление пароля, проигнорируйте это сообщение. '  # noqa: E501
@@ -231,92 +275,53 @@ class RestorePasswordView(views.View):
 				exchange='', routing_key='email_queue', body=message
 			)
 
-			return render(
-				request=request,
-				template_name='auths/restore-password.html',
-				context={'stage': 2, 'email': email},
-				status=200,
-			)
+			connection.close()
 
-		elif stage == '2':
-			email: str = request.POST.get('email')
-			reset_code: str = request.POST.get('reset_code')
-			new_password: str = request.POST.get('new_password')
-			confirm_password: str = request.POST.get('confirm_password')
+			return Response({'unique_user': True}, status.HTTP_200_OK)
+
+		return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+class ActivateCodeView(APIView):
+	"""
+	View for activation codes.
+	"""
+	def post(self, request: Request) -> Response:
+		serializer: AuthCodeSerializer = AuthCodeSerializer(
+			data=request.data
+		)
+
+		if serializer.is_valid():
+			data = serializer.validated_data
+
+			code_type  = data.get('code_type')
+			email = data.get('email')
+			code = data.get('code')
+
+			context_errors = {}
 
 			is_error, errors = validate_email(email)
 			if is_error:
-				context = {'stage': 2, 'errors': errors, 'email': email}
-				return render(
-					request=request,
-					template_name='auths/restore-password.html',
-					context=context,
-					status=400,
-				)
+				context_errors['email'] = errors
 
-			is_error, errors = validate_password(new_password)
+			is_error, errors = validate_code(code)
 			if is_error:
-				context = {'stage': 2, 'errors': errors, 'email': email}
-				return render(
-					request=request,
-					template_name='auths/restore-password.html',
-					context=context,
-					status=400,
-				)
+				context_errors['email'] = errors
 
-			if new_password != confirm_password:
-				context = {
-					'stage': 2,
-					'errors': ['Пароли должны совпадать.'],
-					'email': email,
-				}
-				return render(
-					request=request,
-					template_name='auths/restore-password.html',
-					context=context,
-					status=400,
-				)
+			if context_errors:
+				return Response({'errors': context_errors},
+								status.HTTP_400_BAD_REQUEST)
 
-			user: User | None = User.objects.filter(email=email)
+			if code_type == AuthCode.ACTIVATE_ACCOUNT_CODE:
+				return ActivateAccountHandler.handle(data)
 
-			if not user:
-				errors = ['Пользователь с данным email не найден.']
-				return render(
-					request=request,
-					template_name='auths/restore-password.html',
-					context={'stage': 1, 'errors': errors},
-					status=400,
-				)
+			elif code_type == AuthCode.RESET_PASSWORD_CODE:
+				return RestorePasswordHandler.handle(data)
 
-			active_codes: QuerySet[ResetPasswordCode] | None = (
-				user.reset_password_codes.get_active_codes()
-			)
-			correct_codes: QuerySet[ResetPasswordCode] | None = (
-				active_codes.filter(code=reset_code)
-			)
-			if not correct_codes.exists():
-				errors = ['Данный код не существует.']
-				return render(
-					request=request,
-					template_name='auths/restore-password.html',
-					context={'stage': 2, 'errors': errors},
-					status=400,
-				)
+			return Response({'errors': context_errors},
+				   			status.HTTP_400_BAD_REQUEST)
 
-			user.set_password(new_password)
-			user.save()
-			login(request=request, user=user)
-
-			return redirect('profile/')
-
-		else:
-			errors = ['Стадий восстановления всего две.']
-			return render(
-				request=request,
-				template_name='auths/restore-password.html',
-				context={'stage': 1, 'errors': errors},
-				status=400,
-			)
+		return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
 class ChangePasswordView(LoginRequiredMixin, views.View):
