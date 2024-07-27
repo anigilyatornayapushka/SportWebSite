@@ -155,5 +155,5 @@ def validate_code(code: int) -> tuple[bool, list[str]]:
 
 	if errors:
 		return True, errors
-	
+
 	return False, []

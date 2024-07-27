@@ -12,9 +12,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
 	"""
 
 	confirm_password: str = serializers.CharField(
-		min_length=7,
-		max_length=128,
-		write_only=True
+		min_length=7, max_length=128, write_only=True
 	)
 
 	class Meta:
@@ -31,6 +29,7 @@ class RestorePasswordSerializer(serializers.Serializer):
 	"""
 	Serializer for sending restore code to user.
 	"""
+
 	email: str = serializers.EmailField()
 
 
@@ -38,9 +37,8 @@ class AuthCodeSerializer(serializers.ModelSerializer):
 	"""
 	Serializer for activating codes.
 	"""
-	email: str = serializers.CharField(
-		write_only=True
-	)
+
+	email: str = serializers.CharField(write_only=True)
 
 	class Meta:
 		model = AuthCode

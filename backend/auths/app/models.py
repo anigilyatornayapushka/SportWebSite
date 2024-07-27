@@ -85,23 +85,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 		(FEMALE, 'женский'),
 	)
 
-	first_name: str = models.CharField(
-		verbose_name='имя',
-		max_length=45
-	)
-	last_name: str = models.CharField(
-		verbose_name='фамилия',
-		max_length=45
-	)
+	first_name: str = models.CharField(verbose_name='имя', max_length=45)
+	last_name: str = models.CharField(verbose_name='фамилия', max_length=45)
 	gender: int = models.PositiveSmallIntegerField(
-		verbose_name='пол',
-		choices=GENDERS,
-		null=True
+		verbose_name='пол', choices=GENDERS, null=True
 	)
 	email: str = models.CharField(
-		verbose_name='почта',
-		max_length=60,
-		unique=True
+		verbose_name='почта', max_length=60, unique=True
 	)
 	password: str = models.CharField(
 		verbose_name='пароль',
@@ -118,21 +108,15 @@ class User(AbstractBaseUser, PermissionsMixin):
 		validators=(MinValueValidator(35), MaxValueValidator(120)),
 		null=True,
 	)
-	birthday: int = models.DateField(
-		verbose_name='возраст',
-		null=True
-	)
+	birthday: int = models.DateField(verbose_name='возраст', null=True)
 	is_active: bool = models.BooleanField(
-		verbose_name='активный ли', 
-		default=False
+		verbose_name='активный ли', default=False
 	)
 	is_staff: bool = models.BooleanField(
-		verbose_name='сотрудник ли',
-	default=False
+		verbose_name='сотрудник ли', default=False
 	)
 	is_superuser: bool = models.BooleanField(
-		verbose_name='администратор ли',
-		default=False
+		verbose_name='администратор ли', default=False
 	)
 
 	USERNAME_FIELD: str = 'email'
@@ -181,12 +165,9 @@ class AuthCode(models.Model):
 	expires_at: datetime.datetime = models.DateTimeField(
 		verbose_name='время истечения действительности'
 	)
-	code: int = models.PositiveSmallIntegerField(
-		verbose_name='код'
-	)
+	code: int = models.PositiveSmallIntegerField(verbose_name='код')
 	code_type: int = models.PositiveSmallIntegerField(
-		verbose_name='тип кода',
-		choices=CODE_TYPES
+		verbose_name='тип кода', choices=CODE_TYPES
 	)
 	user: User = models.ForeignKey(
 		verbose_name='пользователь',

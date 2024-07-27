@@ -99,12 +99,14 @@ class RegistrationView(APIView):
 					{'errors': context_errors}, status.HTTP_401_UNAUTHORIZED
 				)
 
-			user: User | None = User.objects.filter(email=data.get('email')).last()
+			user: User | None = User.objects.filter(
+				email=data.get('email')
+			).last()
 
 			if user and user.is_active:
 				return Response(
 					{'errors': ['Пользователь с таким email уже существует']},
-	  				status.HTTP_401_UNAUTHORIZED
+					status.HTTP_401_UNAUTHORIZED,
 				)
 
 			user = serializer.save()
@@ -116,13 +118,13 @@ class RegistrationView(APIView):
 			message_body = (
 				f'Здравствуйте, {user.full_name}!\n'
 				'Поздравляем с созданием аккаунта на Sport WebSite.\n'
-				'Для завершения регистрации и активации вашего аккаунта, пожалуйста, используйте следующий код активации:\n'
+				'Для завершения регистрации и активации вашего аккаунта, пожалуйста, используйте следующий код активации:\n'  # noqa: E501
 				f'Код активации: {activation_code.code}\n'
 				f'Срок действия кода: {activation_code.LIFETIME} минут.\n'
-				f'Ссылка для ввода кода: http://127.0.0.1:5000/activate-code/{user.email}/2/\n'
-				'Пожалуйста, введите этот код на странице активации аккаунта.\n'
-				'Если вы не регистрировались на нашем сайте, проигнорируйте это сообщение. Ваш email не будет использован для активации.\n'
-				'Если у вас возникли вопросы или проблемы, вы можете связаться с нами по одному из контактов внизу главной страницы сайта.\n'
+				f'Ссылка для ввода кода: http://127.0.0.1:5000/activate-code/{user.email}/2/\n'  # noqa: E501
+				'Пожалуйста, введите этот код на странице активации аккаунта.\n'  # noqa: E501
+				'Если вы не регистрировались на нашем сайте, проигнорируйте это сообщение. Ваш email не будет использован для активации.\n'  # noqa: E501
+				'Если у вас возникли вопросы или проблемы, вы можете связаться с нами по одному из контактов внизу главной страницы сайта.\n'  # noqa: E501
 				'С уважением,\n'
 				'Команда Sport WebSite'
 			)
@@ -150,7 +152,7 @@ class RegistrationView(APIView):
 		if err and str(err[0]) == 'пользователь с таким почта уже существует.':
 			email = request.data.get('email')
 			user: User = User.objects.get(email=email)
-			if user.is_active == False:
+			if not user.is_active:
 				user.delete()
 				serializer.is_valid = True
 				serializer.save()
@@ -214,6 +216,7 @@ class RestorePasswordView(APIView):
 	"""
 	View for users to restore their passwords.
 	"""
+
 	def post(self, request: Request) -> Response:
 		serializer: RestorePasswordSerializer = RestorePasswordSerializer(
 			data=request.data
@@ -233,11 +236,15 @@ class RestorePasswordView(APIView):
 					{'errors': context_errors}, status.HTTP_400_BAD_REQUEST
 				)
 
-			user: User | None = User.objects.filter(email=data.get('email')).last()
+			user: User | None = User.objects.filter(
+				email=data.get('email')
+			).last()
 
 			if not user:
 				errors = ['Пользователь с данным email не найден.']
-				return Response({'errors': errors}, status.HTTP_400_BAD_REQUEST)
+				return Response(
+					{'errors': errors}, status.HTTP_400_BAD_REQUEST
+				)
 
 			reset_password_code = AuthCode(user=user)
 			reset_password_code.code_type = AuthCode.RESET_PASSWORD_CODE
@@ -286,15 +293,14 @@ class ActivateCodeView(APIView):
 	"""
 	View for activation codes.
 	"""
+
 	def post(self, request: Request) -> Response:
-		serializer: AuthCodeSerializer = AuthCodeSerializer(
-			data=request.data
-		)
+		serializer: AuthCodeSerializer = AuthCodeSerializer(data=request.data)
 
 		if serializer.is_valid():
 			data = serializer.validated_data
 
-			code_type  = data.get('code_type')
+			code_type = data.get('code_type')
 			email = data.get('email')
 			code = data.get('code')
 
@@ -309,8 +315,9 @@ class ActivateCodeView(APIView):
 				context_errors['email'] = errors
 
 			if context_errors:
-				return Response({'errors': context_errors},
-								status.HTTP_400_BAD_REQUEST)
+				return Response(
+					{'errors': context_errors}, status.HTTP_400_BAD_REQUEST
+				)
 
 			if code_type == AuthCode.ACTIVATE_ACCOUNT_CODE:
 				return ActivateAccountHandler.handle(data)
@@ -318,8 +325,9 @@ class ActivateCodeView(APIView):
 			elif code_type == AuthCode.RESET_PASSWORD_CODE:
 				return RestorePasswordHandler.handle(data)
 
-			return Response({'errors': context_errors},
-				   			status.HTTP_400_BAD_REQUEST)
+			return Response(
+				{'errors': context_errors}, status.HTTP_400_BAD_REQUEST
+			)
 
 		return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
